@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+    	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+	</head>
+<body>
+	<div class="container-fluid" style="text-align:center">
+
+		<div class="page-header">
+			
+			<img class="img-responsive center-block" style="width:300px;height:100px" src="//s3.amazonaws.com/img.iluria.com/user_layout_theme/1A9CA/logo.jpg?r=0.770876" alt="logo-full" border="0">        	
+        	<p class="lead">Leitura dos dados do acelerômetro MPU-6050 usando NodeMCU</p>
+      </div>
+
+		<div class="row" style="background-color:transparent">
+			<div align="center">
+				<div class="col-md-2" style="font-size:25px">
+					<div>
+						<span class="label label-default" style="font-size:20px">AccelX</span>				
+					</div>
+					<div>
+						<canvas id="gauge-accelX" style="background-color:transparent; width:200px; height:100px;"></canvas>
+					</div>
+					<div>
+						<div id="txt-gauge-accelX" style="width:100px; height:100px; font-size: 35px; text-align: center; background-color:transparent"></div>
+					</div>
+				</div>
+				<div class="col-md-2" style="font-size:25px">
+					<div>
+						<span class="label label-default" style="font-size:20px">AccelY</span>				
+					</div>
+					<div>
+						<canvas id="gauge-accelY" style="background-color:transparent;  width:200px; height:100px;"></canvas>
+					</div>
+					<div>
+						<div id="txt-gauge-accelY" style="width:100px; height:100px; font-size: 35px; text-align: center; background-color:transparent"></div>
+					</div>
+				</div>
+				<div class="col-md-2" style="font-size:25px">
+					<div>
+						<span class="label label-default" style="font-size:20px">AccelZ</span>				
+					</div>
+					<div>
+						<canvas id="gauge-accelZ" style="background-color:transparent;  width:200px; height:100px;"></canvas>
+					</div>
+					<div>
+						<div id="txt-gauge-accelZ" style="width:100px; height:100px; font-size: 35px; text-align: center; background-color:transparent"></div>
+					</div>
+				</div>
+				<div class="col-md-2" style="font-size:25px">
+					<div>
+						<span class="label label-default" style="font-size:20px">GyroX</span>				
+					</div>
+					<div>
+						<canvas id="gauge-gyroX" style="background-color:transparent;  width:200px; height:100px;"></canvas>
+					</div>
+					<div>
+						<div id="txt-gauge-gyroX" style="width:100px; height:100px; font-size: 35px; text-align: center; background-color:transparent"></div>
+					</div>
+				</div>
+				<div class="col-md-2" style="font-size:25px">
+					<div>
+						<span class="label label-default" style="font-size:20px">GyroY</span>				
+					</div>
+					<div>
+						<canvas id="gauge-gyroY" style="background-color:transparent;  width:200px; height:100px;"></canvas>
+					</div>
+					<div>
+						<div id="txt-gauge-gyroY" style="width:100px; height:100px; font-size: 35px; text-align: center; background-color:transparent"></div>
+					</div>
+				</div>
+				<div class="col-md-2" style="font-size:25px">
+					<div>
+						<span class="label label-default" style="font-size:20px">GyroZ</span>				
+					</div>
+					<div>
+						<canvas id="gauge-gyroZ" style="background-color:transparent;  width:200px; height:100px;"></canvas>
+					</div>
+					<div>
+						<div id="txt-gauge-gyroZ" style="width:100px; height:100px; font-size: 35px; text-align: center; background-color:transparent"></div>
+					</div>
+				</div>
+				<div class="col-md-6" style="font-size:25px">
+					<div>
+						<span class="label label-default" style="font-size:20px">Temperatura</span>				
+					</div>
+					<div>
+						<canvas id="gauge-temp" style="background-color:transparent;  width:200px; height:100px;"></canvas>
+					</div>
+					<div>
+						<div id="txt-gauge-temp" style="width:100px; height:100px; font-size: 35px; text-align: center; background-color:transparent"></div>
+					</div>
+				</div>
+				<div class="col-md-6">
+					<div class="container-fluid map" id="map" style="width:350px; height:200px;"></div>
+				</div>
+			</div>
+		</div>
+				
+			
+	</div>
+
+</body>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="http://bernii.github.com/gauge.js/dist/gauge.min.js"></script>
+<script type="text/javascript" src="javascript/gauge.js"></script>
+<script type="text/javascript" src="javascript/googlemaps.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCXA-c5NqxpQ6mYBQRZIrOViL6M0Qg_i24&callback=myMap"></script>
+
+<script>
+
+var socket = io.connect();
+
+socket.on('location', function(location) {
+	city = location.city
+	country = location.country
+	lat = location.lat
+	lon = location.lon
+	query = location.query
+	region = location.region
+
+	var markerInfoText = (city + ", " + region + " - " + country + "<br>" + "lat: " + lat + "  lon: " + lon + "<br>" + "IP: " + query)
+
+	var infowindow = new google.maps.InfoWindow({
+    	content: markerInfoText
+  	});
+
+	map.setCenter(new google.maps.LatLng(lat, lon))	
+	var marker = new google.maps.Marker({
+		position: {lat: lat, lng: lon},
+		map: map,
+		title: 'Hello World!'
+	});
+	marker.addListener('click', function() {
+    	infowindow.open(map, marker);
+  	});
+
+	socket.emit('location', "got location");
+});
+
+socket.on('accelData', function(accelData) {
+	var accelX = accelData.data.accel.accelX
+   var accelY = accelData.data.accel.accelY  
+   var accelZ = accelData.data.accel.accelZ
+   var temp = accelData.data.temp
+   var gyroX = accelData.data.gyro.gyroX
+   var gyroY = accelData.data.gyro.gyroY
+   var gyroZ = accelData.data.gyro.gyroZ
+    
+	document.getElementById("txt-gauge-accelX").innerHTML = accelX;
+	document.getElementById("txt-gauge-accelY").innerHTML = accelY;
+	document.getElementById("txt-gauge-accelZ").innerHTML = accelZ;
+
+	document.getElementById("txt-gauge-temp").innerHTML = temp+"°C";
+
+	document.getElementById("txt-gauge-gyroX").innerHTML = gyroX;
+	document.getElementById("txt-gauge-gyroY").innerHTML = gyroY;
+	document.getElementById("txt-gauge-gyroZ").innerHTML = gyroZ;
+
+	// set gauge value
+	gauge_accelX.set(accelX);
+	gauge_accelY.set(accelY);
+	gauge_accelZ.set(accelZ);
+	gauge_gyroX.set(gyroX);
+	gauge_gyroY.set(gyroY);
+	gauge_gyroZ.set(gyroZ);
+	gauge_temp.set(temp);
+
+   //socket.emit('accelData', "got accelData");
+});
+</script>
+
+
+
+
+
